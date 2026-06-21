@@ -7,53 +7,19 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
+      # Официальный проверенный инструмент, который сам ставит правильный Android SDK и NDK
+      - name: Build APK with Buildozer Action
+        uses: ArtemSBulgakov/buildozer-action@v1
         with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-
-      - name: Install System Dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential libssl-dev libffi-dev libgmp3-dev dpkg-dev execstack lld
-          sudo apt-get install -y libcc1-0 autoconf automake libtool pkg-config zlib1g-dev libncurses5-dev libgdbm-dev libncursesw5-dev libsqlite3-dev tk-dev p7zip-full unzip zip git
-          pip install --upgrade pip setuptools virtualenv buildozer Cython
-
-      - name: Setup Android SDK and Fix Paths
-        run: |
-          # Вручную создаем правильную структуру папок для Android SDK, которую требует Kivy
-          mkdir -p $HOME/.buildozer/android/platform/cmdline-tools
-          
-          # Скачиваем официальный стабильный cmdline-tools от Google
-          wget --quiet https://google.com -O tools.zip
-          unzip -q tools.zip
-          
-          # Создаем костыль (символическую ссылку): перенаправляем старые запросы Buildozer на новые пути Google
-          mkdir -p $HOME/.buildozer/android/platform/android-sdk/tools/bin
-          cp -r cmdline-tools/* $HOME/.buildozer/android/platform/android-sdk/tools/
-          ln -s $HOME/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager $HOME/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager || true
-          
-          # Принудительно принимаем лицензии внутри созданной папки
-          yes | ./cmdline-tools/bin/sdkmanager --sdk_root=$HOME/.buildozer/android/platform/android-sdk "build-tools;34.0.0" "platforms;android-34" --licenses || true
-
-      - name: Build APK with Buildozer
-        run: |
-          # Запуск компиляции
-          buildozer android debug
-        env:
-          ACCEPT_ANDROID_SDK_LICENSES: "y"
+          buildozer_version: stable
+          command: buildozer android debug
+          repository_root: .
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
