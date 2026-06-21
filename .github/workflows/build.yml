@@ -29,12 +29,11 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential libssl-dev libffi-dev libgmp3-dev dpkg-dev execstack lld
           sudo apt-get install -y libcc1-0 autoconf automake libtool pkg-config zlib1g-dev libncurses5-dev libgdbm-dev libncursesw5-dev libsqlite3-dev tk-dev p7zip-full
-          sudo apt-get install -y unzip zip openjdk-17-jdk git aidl textutils
+          sudo apt-get install -y unzip zip openjdk-17-jdk git aidl
           pip install --upgrade pip setuptools virtualenv buildozer Cython
 
       - name: Build APK with Buildozer
         run: |
-          # Автоматическое принятие лицензий Android SDK перед началом сборки
           mkdir -p ~/.android
           touch ~/.android/repositories.cfg
           yes | buildozer android debug
