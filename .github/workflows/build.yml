@@ -34,19 +34,12 @@ jobs:
 
       - name: Build APK with Buildozer
         run: |
-          # Подготовка директорий под Android SDK
+          # Создаем базовые файлы конфигурации Android
           mkdir -p ~/.android
           touch ~/.android/repositories.cfg
-          mkdir -p $HOME/.buildozer/android/platform/android-sdk
           
-          # Скачивание cmdline-tools для принудительного принятия лицензий
-          wget --quiet --output-document=sdk-tools.zip https://google.com
-          unzip -q sdk-tools.zip -d cmdline-tools-dir
-          
-          # Принимаем все лицензии во избежание интерактивных запросов (Accept y/N)
-          yes | ./cmdline-tools-dir/cmdline-tools/bin/sdkmanager --sdk_root=$HOME/.buildozer/android/platform/android-sdk --licenses || true
-          
-          # Финальный запуск компиляции игры
+          # Запускаем сборку. Buildozer сам скачает SDK, а флаг --report-errors
+          # илиACCEPT_ANDROID_SDK_LICENSES автоматически пропишет согласие.
           buildozer android debug
         env:
           ACCEPT_ANDROID_SDK_LICENSES: "y"
