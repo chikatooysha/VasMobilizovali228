@@ -32,21 +32,18 @@ jobs:
           sudo apt-get install -y unzip zip openjdk-17-jdk git aidl
           pip install --upgrade pip setuptools virtualenv buildozer Cython
 
+      - name: Pre-accept Android SDK Licenses
+        run: |
+          # Создаем структуру папок, куда Buildozer скачает Android SDK
+          mkdir -p $HOME/.buildozer/android/platform/android-sdk/licenses
+          
+          # Записываем официальные хэш-ключи лицензий Google, подтверждающие согласие
+          echo -e "\n8933bad161ad4178b1185d1a37fbf41ea5269c55\nd56f5187479451eabf01fb7431302ba7f4c8a1d0\n24333f8a63b6825ea9c5514f83c2829b004d1fee" > $HOME/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
+          echo -e "\n84831b9409646a918e30573bab4c9c91346d8abd\n504667f4c0de7af1a06de9f4b1727b84351f2910" > $HOME/.buildozer/android/platform/android-sdk/licenses/android-sdk-preview-license
+          echo -e "\ne9ac30d0b3d014d960623a726898d8b6632c89f2" > $HOME/.buildozer/android/platform/android-sdk/licenses/android-googletv-license
+
       - name: Build APK with Buildozer
         run: |
-          # Создаем базовые файлы конфигурации Android
-          mkdir -p ~/.android
-          touch ~/.android/repositories.cfg
-          
-          # Запускаем сборку. Buildozer сам скачает SDK, а флаг --report-errors
-          # илиACCEPT_ANDROID_SDK_LICENSES автоматически пропишет согласие.
+          # Запуск сборки с уже предустановленными лицензиями
           buildozer android debug
-        env:
-          ACCEPT_ANDROID_SDK_LICENSES: "y"
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: game-apk
-          path: bin/*.apk
           
