@@ -1,0 +1,20 @@
+name: Build APK
+on: [push, workflow_dispatch]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build APK with Buildozer
+        uses: digreatbrian/buildozer-action@v2
+        with:
+          python-version: 3.8
+          buildozer-cmd: buildozer -v android debug
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: game-apk
+          path: ./*.apk
