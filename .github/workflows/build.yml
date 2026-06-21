@@ -24,26 +24,40 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Install Buildozer and Dependencies
+      - name: Install System Dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential libssl-dev libffi-dev libgmp3-dev dpkg-dev execstack lld
-          sudo apt-get install -y libcc1-0 autoconf automake libtool pkg-config zlib1g-dev libncurses5-dev libgdbm-dev libncursesw5-dev libsqlite3-dev tk-dev p7zip-full
-          sudo apt-get install -y unzip zip openjdk-17-jdk git aidl
+          sudo apt-get install -y libcc1-0 autoconf automake libtool pkg-config zlib1g-dev libncurses5-dev libgdbm-dev libncursesw5-dev libsqlite3-dev tk-dev p7zip-full unzip zip git
           pip install --upgrade pip setuptools virtualenv buildozer Cython
 
-      - name: Pre-accept Android SDK Licenses
+      - name: Setup Android SDK and Fix Paths
         run: |
-          # Создаем структуру папок, куда Buildozer скачает Android SDK
-          mkdir -p $HOME/.buildozer/android/platform/android-sdk/licenses
+          # Вручную создаем правильную структуру папок для Android SDK, которую требует Kivy
+          mkdir -p $HOME/.buildozer/android/platform/cmdline-tools
           
-          # Записываем официальные хэш-ключи лицензий Google, подтверждающие согласие
-          echo -e "\n8933bad161ad4178b1185d1a37fbf41ea5269c55\nd56f5187479451eabf01fb7431302ba7f4c8a1d0\n24333f8a63b6825ea9c5514f83c2829b004d1fee" > $HOME/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
-          echo -e "\n84831b9409646a918e30573bab4c9c91346d8abd\n504667f4c0de7af1a06de9f4b1727b84351f2910" > $HOME/.buildozer/android/platform/android-sdk/licenses/android-sdk-preview-license
-          echo -e "\ne9ac30d0b3d014d960623a726898d8b6632c89f2" > $HOME/.buildozer/android/platform/android-sdk/licenses/android-googletv-license
+          # Скачиваем официальный стабильный cmdline-tools от Google
+          wget --quiet https://google.com -O tools.zip
+          unzip -q tools.zip
+          
+          # Создаем костыль (символическую ссылку): перенаправляем старые запросы Buildozer на новые пути Google
+          mkdir -p $HOME/.buildozer/android/platform/android-sdk/tools/bin
+          cp -r cmdline-tools/* $HOME/.buildozer/android/platform/android-sdk/tools/
+          ln -s $HOME/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager $HOME/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager || true
+          
+          # Принудительно принимаем лицензии внутри созданной папки
+          yes | ./cmdline-tools/bin/sdkmanager --sdk_root=$HOME/.buildozer/android/platform/android-sdk "build-tools;34.0.0" "platforms;android-34" --licenses || true
 
       - name: Build APK with Buildozer
         run: |
-          # Запуск сборки с уже предустановленными лицензиями
+          # Запуск компиляции
           buildozer android debug
+        env:
+          ACCEPT_ANDROID_SDK_LICENSES: "y"
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: game-apk
+          path: bin/*.apk
           
