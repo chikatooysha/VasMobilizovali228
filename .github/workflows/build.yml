@@ -1,10 +1,7 @@
 - name: Install dependencies
       run: |
         sudo apt-get update
-        # Принудительно устанавливаем libunwind-dev, исправляя сломанные зависимости
         sudo apt-get install -y --fix-broken libunwind-dev
-        
-        # Теперь ставим всё остальное
         sudo apt-get install -y \
           build-essential \
           git \
