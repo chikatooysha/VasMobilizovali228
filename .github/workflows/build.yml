@@ -68,6 +68,8 @@ jobs:
 
     - name: Build APK with Buildozer
       run: |
+        mkdir -p ~/.android
+        touch ~/.android/repositories.cfg
         yes | buildozer -v android debug
 
     - name: Upload APK Artifact
