@@ -1,28 +1,11 @@
-name: Build Kivy App to APK
 
-on:
-  push:
-    branches: [ "main" ] # Сборка будет запускаться при пуше в ветку main
-  pull_request:
-    branches: [ "main" ]
-  workflow_dispatch: # Позволяет запускать сборку вручную через вкладку Actions
-
-jobs:
-  build:
-    runs-on: ubuntu-22.04
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-python-version: '3.11'
-
-    - name: Install dependencies
+- name: Install dependencies
       run: |
         sudo apt-get update
+        # Принудительно устанавливаем libunwind-dev, исправляя сломанные зависимости
+        sudo apt-get install -y --fix-broken libunwind-dev
+        
+        # Теперь ставим всё остальное
         sudo apt-get install -y \
           build-essential \
           git \
@@ -60,19 +43,3 @@ jobs:
           libtool \
           pkg-config \
           ccache
-
-    - name: Install Buildozer and Cython
-      run: |
-        pip install --upgrade pip
-        pip install buildozer cython virtualenv
-
-    - name: Build APK with Buildozer
-      run: |
-        # Используем "yes", чтобы автоматически принять все лицензии Android SDK
-        yes | buildozer -v android debug
-
-    - name: Upload APK Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: TckEscape-APK
-        path: bin/*.apk
